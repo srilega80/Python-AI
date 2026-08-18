@@ -18,7 +18,6 @@ def get_vid(q):
 def home():
     return render_template("index.html")
 
-
 @app.route("/agent", methods=["POST"])
 def ai_agent_router():
     d = request.get_json(silent=True)
@@ -40,7 +39,6 @@ def ai_agent_router():
         ]
         for p in patterns:
             q = q.replace(p, "")
-
         q = q.strip()
         vid = get_vid(q)
         if vid:
@@ -48,7 +46,7 @@ def ai_agent_router():
             msg = f"Playing {q}"
 
     elif any(k in cmd for k in ["gmail", "email", "mail", "message"]):
-        to, body = "",""
+        to, body = "", ""
         clean_cmd = re.sub(
             r'^(please\s+)?(open\s+)?(gmail|email|mail|message)\s*',
             '',
@@ -60,26 +58,26 @@ def ai_agent_router():
         parts = re.split(r'\b(type|write|saying|message|content|with body)\b', clean_cmd)
         recip_part = parts[0].strip()
 
-        recip_part = re.sub(r'^(update\s+to|send\s+to|and\s+update\s+to)\s*', '', recip_part).strip()
-
+        recip_part = re.sub(r'^(update\s+to|to|send\s+to|and\s+update\s+to)\s*', '', recip_part).strip()
 
         if len(parts) > 1:
             body = parts[-1].strip()
 
         if recip_part:
             c = recip_part.replace(" at ", "@").replace(" dot ", ".").replace(" ", "")
-            c = re.sub(r'[^a-zA-Z0-9@._%]', '', c)
+            c = re.sub(r'[^a-zA-Z0-9@._%-]', '', c)
             to = c if "@" in c else f"{c}@gmail.com"
 
         base = "https://mail.google.com/mail/u/0/?view=cm&fs=1"
         params = urllib.parse.urlencode({"to": to, "body": body})
         target = f"{base}&{params}"
         msg = f"Drafting email to {to}"
+
     return jsonify({
         "success": True,
         "message": msg,
         "url": target
-    })    
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
